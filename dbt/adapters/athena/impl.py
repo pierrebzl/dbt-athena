@@ -100,6 +100,7 @@ class AthenaConfig(AdapterConfig):
         partitions_limit: Maximum numbers of partitions when batching.
         force_batch: Skip creating the table as ctas and run the operation directly in batch insert mode.
         unique_tmp_table_suffix: Enforce the use of a unique id as tmp table suffix instead of __dbt_tmp.
+        tmp_schema: Define in which schema to create temporary tables used in incremental runs.
     """
 
     work_group: Optional[str] = None
@@ -121,6 +122,7 @@ class AthenaConfig(AdapterConfig):
     partitions_limit: Optional[int] = None
     force_batch: bool = False
     unique_tmp_table_suffix: bool = False
+    tmp_schema: Optional[str] = None
 
 
 class AthenaAdapter(SQLAdapter):
@@ -379,6 +381,21 @@ class AthenaAdapter(SQLAdapter):
             LOGGER.debug(f"{relation.render()} is stored in {table_location}")
             return str(table_location)
         return None
+
+    # @available
+    # def is_glue_schema_exist(self, s3_bucket: str, s3_prefix: str) -> bool:
+    #     """Checks whether a given schema exists within catalog."""
+    #     conn = self.connections.get_thread_connection()
+    #     creds = conn.credentials
+    #     client = conn.handle
+    #     with boto3_client_lock:
+    #         s3_client = client.session.client(
+    #             "s3",
+    #             region_name=client.region_name,
+    #             config=get_boto3_config(num_retries=creds.effective_num_retries),
+    #         )
+    #     response = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=s3_prefix)
+    #     return True if "Contents" in response else False
 
     @available
     def clean_up_partitions(self, relation: AthenaRelation, where_condition: str) -> None:
